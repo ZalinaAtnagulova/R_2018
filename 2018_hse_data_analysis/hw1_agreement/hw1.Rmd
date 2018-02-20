@@ -1,0 +1,80 @@
+```{r}
+library(tidyverse)
+library(dplyr)
+library(irr)
+df <- read_csv("https://raw.githubusercontent.com/agricolamz/2018_data_analysis_for_linguists/master/data/students/ZalinaAtnagulova/hw1_agreement/hw1_1_zilo_class.csv")  
+head(df)
+
+### 1.1
+df %>%
+  distinct(stimulus_source, translation_ru) %>%
+  count(stimulus_source)
+
+### 1.2
+df %>% 
+  select(s_id, stimulus, translation_ru, stimulus_source, class) %>% 
+  spread(key = s_id, value = class) ->
+  df_short
+head(df_short)
+
+agree(df_short[,-c(1:3)])
+round(74.2*89/100)
+
+### 1.3
+df_2a <- df_short[,c(10, 14)]
+kappa2(df_2a)
+
+### 1.4
+df_short[,-c(1:3)]
+kappam.fleiss(df_short[,-c(1:3)])
+```
+
+### 1.5
+Судя по датасету, в тестовой выборке было 43 исконных слова и 46 заимствованных. При определении класса слова носителями
+вяснилось, что их процент согласия составляет около 66%, что означает, что каждому из 66% всех слов в выборке
+все опрошенные носители присвоили одинаковаый класс. Когда мы отдельно сравнивали 7-го и 11-го носителей
+и считали для них каппу Коэна, оказалось, что она очень близка к единице, 0.865, то есть
+по классификации [Landis, Koch 1977] 7-ой и 11-ый носители почти полностью согласны друг с другом
+в принадлежности исследуемых слов к тому или иному классу. Каппа Фляйса для всех опрошенных
+носителей равна 0.842, что также говорит о почти полном согласии носителей при определении
+класса слова. Однако это значение противоречит проценту полного согласия, который мы читали в самом
+начале, которая показывает, что далеко не все носители одинаково определяют класс
+слова. Эти значения наглядно демонстрируют, что процент полного согласия и мера согласованности между оценщиками
+разные вещи, потому что процент полнго согласия не учитывает возможность случайного совпадения или расхождения суждений.
+
+```{r}
+### 2.1
+hw1_2_verbs <- read_csv('https://raw.githubusercontent.com/agricolamz/2018_data_analysis_for_linguists/master/data/students/ZalinaAtnagulova/hw1_agreement/hw1_2_verbs.csv')
+head(hw1_2_verbs)
+hw1_2_verbs %>% 
+  distinct(SubjectCode) ->
+  verbs_n_speakers
+as_tibble(nrow(verbs_n_speakers))  #value а надо n :(
+
+### 2.2
+hw1_2_verbs %>%
+  select(WordType, Gender, GivenScore) %>% 
+  group_by(WordType, Gender) %>% 
+  summarise(mean = mean(GivenScore))
+
+### 2.3
+hw1_2_verbs %>% 
+  select(SubjectCode, Stimulus, GivenScore) %>% 
+  spread(key = SubjectCode, value = GivenScore) ->
+  hw1_2_verbs_short
+hw1_2_verbs_short[complete.cases(hw1_2_verbs_short), ] #works?? NA-s??
+head(hw1_2_verbs_short)
+agree(hw1_2_verbs_short[,-c(1)])
+round(11.7*60/100)
+
+### 2.4
+kappam.fleiss(hw1_2_verbs_short[,-c(1)])
+
+### 2.5
+icc(hw1_2_verbs_short[,-1], model = "twoway", type = "agreement")
+
+### 2.6
+icc_verbs <- as.table(cor(hw1_2_verbs_short[, -1], method = "kendall"))
+min(icc_verbs)
+max(icc_verbs)
+```
