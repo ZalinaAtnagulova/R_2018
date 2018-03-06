@@ -1,0 +1,77 @@
+```{r}
+
+library(tidyverse)
+library(mosaic)
+
+n <- 199
+k <- 70
+prior <- 0.3587337
+
+### 1.1
+binomial_test <- binom.test(k, n, prior)
+binomial_test
+
+### 1.2
+set.seed(42)
+do(1000)*
+  sum(sample(x = 1:0, 
+             size = n, 
+             prob = c(prior, 1-prior), 
+             replace = TRUE)) ->
+  simulations
+simulations %>% 
+  mutate(greater = sum >= 70) %>% 
+  count(greater)
+
+simulations %>% 
+  ggplot(aes(sum))+
+  geom_density(fill = "lightblue")+
+  geom_vline(xintercept = 70, linetype = 2)+
+  theme_bw()+
+  labs(title = "Распределение 1000 симуляций с параметрами n = 199, p = 0.3587337")
+
+### 1.3
+alpha_prior <- prior*199
+alpha_prior
+
+beta_prior <- (1-prior)*199
+beta_prior
+
+alpha_data <- 70
+beta_data <- 199 - 70
+
+alpha_post <- alpha_prior + alpha_data
+beta_post <- beta_prior + beta_data
+
+x <- seq(0, 1, length = 100)
+data_frame(p = rep(x, 3),
+           density = c(dbeta(x, alpha_prior, beta_prior),
+                       dbeta(x, alpha_data, beta_data),
+                       dbeta(x, alpha_post, beta_post)),
+           type = rep(c("prior", "likelihood", "posterior"), each = 100))%>% 
+  ggplot(aes(x = p, y = density, color = type))+
+  geom_line()+
+  theme_bw()
+
+alpha_post/(alpha_post+beta_post)
+
+### 1.4
+x <- seq(0, 1, length = 100)
+data_frame(p = rep(x, 3),
+           density = c(dbeta(x, 1, 1),
+                       dbeta(x, alpha_data, beta_data),
+                       dbeta(x, alpha_data + 1, beta_data + 1)),
+           type = rep(c("prior", "likelihood", "posterior"), each = 100))%>% 
+  ggplot(aes(x = p, y = density, color = type))+
+  geom_line()+
+  theme_bw()
+
+### 1.5
+В рамках нашей задачи мы формулировали следующую нулевую гипотезу:
+  вероятность количества успехов не будет статистически отличаться 
+  от ожидаемой вероятности, т.е. будет равна 0.3587337.
+И биномиальный тест показал, что наша нулевая гипотеза оказалась верна, 
+probability of success = 0.3517588 
+и попадает в 95% доверительный интервал х[.2855636; 0.4224448].
+
+```
